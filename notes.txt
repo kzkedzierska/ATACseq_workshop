@@ -1,0 +1,22 @@
+
+
+Steps in ATAC-seq analysis
+
+Note: This is just an example with proposed software and algorithms. It is supposed to help you understand the idea behind ATAC-seq analysis and highlight the tricky parts. Nevertheless, it is highly propable that other software or solutions are avaliable that will better fit your data or your user preferences. 
+
+/ My advice - choose the software that agrees with you - but most important don't use software that has very poor documentation and you cannot understand what it does exactly. This is a common mistake of people using a software for, let's say motif search, because on the box it says it looks for the motifs. /
+
+	1. **Reads processeing** - quality assesment, filtering and trimming if necessary. *fastqc with multiqc, trim-galore/cutadapt*
+	2. **Alignment** *bowtie/bwa mem*
+	3. **Aignment processing**
+		3.1. quality filtering *picard / samtools*
+		3.2. filtering out blacklisted regions *bedtools*
+		3.3. shifting alignemnts +4,-5 bp *awk*
+	4. Peak calling *macs2 / homer*
+	5. Motif search *homer / meme-suite* and footprinting *centipede
+
+
+
+	https://github.com/taoliu/MACS/issues/145
+
+BSgenome.Mmusculus.UCSC.mm10
