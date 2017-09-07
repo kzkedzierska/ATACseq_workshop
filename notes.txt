@@ -6,7 +6,7 @@ Note: This is just an example with proposed software and algorithms. It is suppo
 
 / My advice - choose the software that agrees with you - but most important don't use software that has very poor documentation and you cannot understand what it does exactly. This is a common mistake of people using a software for, let's say motif search, because on the box it says it looks for the motifs. /
 
-	1. **Reads processeing** - quality assesment, filtering and trimming if necessary. *fastqc with multiqc, trim-galore/cutadapt*
+	1. **Reads processing** - quality assessment, filtering and trimming if necessary. *fastqc with multiqc, trim-galore/cutadapt*
 	2. **Alignment** *bowtie/bwa mem*
 	3. **Aignment processing**
 		3.1. quality filtering *picard / samtools*
@@ -20,3 +20,16 @@ Note: This is just an example with proposed software and algorithms. It is suppo
 	https://github.com/taoliu/MACS/issues/145
 
 BSgenome.Mmusculus.UCSC.mm10
+
+
+samtools view -h -b -F 3844 -f 2 -q 5 $f | 
+# 		samtools sort -n -T ${nam}_tmp -o ${nam}.bed -@ 16;
+
+
+mapped reads - more than 80%, preferable more than 95%
+Non-Redundant Fraction > 0.9
+Read length
+Library type: PE
+ENCODE standard: at least 25 mln non-duplicate, non-mitochondrial aligned fragments
+
+https://www.youtube.com/watch?v=XYZHMGUGq6o
