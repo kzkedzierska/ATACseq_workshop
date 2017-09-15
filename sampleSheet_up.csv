@@ -1,0 +1,4 @@
+ENCFF109LQF	12.5	liver	2	./bams/ENCFF109LQF_part.bam	./shifted/ENCFF109LQF_part.bam
+ENCFF146ZCO	12.5	liver	1	./bams/ENCFF146ZCO_part.bam	./shifted/ENCFF146ZCO_part.bam
+ENCFF848NLJ	0	liver	2	./bams/ENCFF848NLJ_part.bam	./shifted/ENCFF848NLJ_part.bam
+ENCFF929LOH	0	liver	1	./bams/ENCFF929LOH_part.bam	./shifted/ENCFF929LOH_part.bam
