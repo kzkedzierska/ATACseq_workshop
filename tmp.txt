@@ -1,0 +1,5 @@
+
+./peaks/ENCFF109LQF/NA_peaks.narrowPeak
+./peaks/ENCFF146ZCO/NA_peaks.narrowPeak
+./peaks/ENCFF848NLJ/NA_peaks.narrowPeak
+./peaks/ENCFF929LOH/NA_peaks.narrowPeak

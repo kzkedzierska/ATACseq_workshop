@@ -1,0 +1,1 @@
+cmd = ./peaks/ENCFF146ZCO.bed mm10 ./motifs/ENCFF146ZCO -size 200 -p 16 -S 15 -len 8

@@ -1,0 +1,5 @@
+SampleID,Tissue,Factor,Replicate,bamReads,Peaks,PeakCaller	
+ENCFF109LQF,liver,d12.5,2,./shifted/ENCFF109LQF_part.bam,./peaks/ENCFF109LQF/NA_peaks.narrowPeak,narrow
+ENCFF146ZCO,liver,d12.5,1,./shifted/ENCFF146ZCO_part.bam,./peaks/ENCFF146ZCO/NA_peaks.narrowPeak,narrow
+ENCFF848NLJ,liver,d0,2,./shifted/ENCFF848NLJ_part.bam,./peaks/ENCFF848NLJ/NA_peaks.narrowPeak,narrow
+ENCFF929LOH,liver,d0,1,./shifted/ENCFF929LOH_part.bam,./peaks/ENCFF929LOH/NA_peaks.narrowPeak,narrow

@@ -1,22 +1,22 @@
 # ATACseq workshop
 
-Katarzyna Kedzierska
-September 16, 2017
-Jachranka, Poland
+**Katarzyna Kedzierska**  
+*September 16, 2017  
+Jachranka, Poland*
 
 ## Table of Content
-	* [ATACseq workshop](#atacseq-workshop)
-      * [Table of Content](#table-of-content)
-      * [Plan](#plan)
-      * [Data](#data)
-      * [Before we start](#before-we-start)
-      * [Quality metrics](#quality-metrics)
-      * [Reads shifting](#reads-shifting)
-      * [Peak calling](#peak-calling)
-      * [Consensus peakset](#consensus-peakset)
-         * [Enrichr](#enrichr)
-      * [Differential analysis](#differential-analysis)
-      * [Footprinting](#footprinting)
+* [ATACseq workshop](#atacseq-workshop)
+	* [Table of Content](#table-of-content)
+	* [Plan](#plan)
+    * [Data](#data)
+    * [Before we start](#before-we-start)
+    * [Quality metrics](#quality-metrics)
+    * [Reads shifting](#reads-shifting)
+    * [Peak calling](#peak-calling)
+    * [Consensus peakset](#consensus-peakset)
+    	* [Enrichr](#enrichr)
+    * [Differential analysis](#differential-analysis)
+    * [Footprinting](#footprinting)
 
 ## Plan
 
@@ -63,27 +63,15 @@ We need to do two things - one, copy bam files and two, check if every package i
 
 ```
 rsync -avz --exclude="*.git/" USERNAME@192.168.1.111:/ngschool/2017/ATACseq_workshop ~/ngschool/ATACseq_workshop
+
+perl /home/USERNAME/miniconda2/share/homer-4.9.1-5/configureHomer.pl -install mm10
+
 ```
 Open R and run the following code. 
 
 ```R
-###  checks for the installed packages 
-packages.needed <- c("ATACseqQC", "Diffbind", "MotifDb", "BSgenome.Mmusculus.UCSC.mm10")
-which.ones <- packaged.needed %in% installed.packages()
-if (sum(which.ones) > 0) {
-	source("https://bioconductor.org/biocLite.R")
-}
-for (f in pakgaes.needed[]) {
-	biocLite(f)
-}
 
-### check again
-packages.needed <- c("ATACseqQC", "Diffbind", "MotifDb", "BSgenome.Mmusculus.UCSC.mm10)
-which.ones <- packaged.needed %in% installed.packages()
-if (sum(which.ones) > 0) {
-	print("Houston we have a problem!")
-	print(paste0(paste(packages.needed[which.ones], sep=', '), " were not installed."))
-}
+source("./scripts/test.R")
 
 ```
 
@@ -91,90 +79,110 @@ if (sum(which.ones) > 0) {
 
 ```R
 require(ATACseqQC)
-sampleSheet <- read.csv("sampleSheet.tsv", d="\t")
+require(grid)
+sampleSheet <- read.csv("sampleSheet_up.csv", 
+                        sep ="\t", 
+                        header = FALSE,
+                        stringsAsFactors = FALSE)
 bamfiles <- sampleSheet$V6
-bamfiles.labels <- gsub(".bam", "", basename(bamfiles))
-fragSize <- fragSizeDist(bamfiles, bamfiles.labels)
+bamfiles.labels <- as.character(mapply(FUN=gsub, basename(bamfiles), MoreArgs = list(pattern = "_part.bam", replacement = "")))
 
+#fragSize <- fragSizeDist(bamfiles, bamfiles.labels)
+for (a in 1:length(bamfiles)) {
+  grid.newpage()
+  fragSize <- fragSizeDist(bamfiles[a], bamfiles.labels[a])
+}
 ```
 
 Fragment size distribution plot.
 
-
+![](./graphics/fragSize_1.png)
+![](./graphics/fragSize_2.png)
 
 ## Reads shifting
 
+That was already done, don't run it since it requires huge package I don't think everyboy has. 
+
 ```R
-require("BSgenome.Mmusculus.UCSC.mm10")
-require(ATACseqQC)
-
+require(BSgenome.Mmusculus.UCSC.mm10) #600 MB
 ## bamfile tags
-#tags <- c("AS", "XN", "XM", "XO", "XG", "NM", "MD", "YS", "YT")
+tags <- c("AS", "XN", "XM", "XO", "XG", "NM", "MD", "YS", "YT")
 ## files will be output into outPath
-
-outPath <- "splited"
+outPath <- "shifted"
 dir.create(outPath)
 
-## shift the bam file by the 5'ends
-require("BSgenome.Mmusculus.UCSC.mm10")
-
-gal <- readBamFile(bamfiles[1], tag=tags, asMates=TRUE)
-gal1 <- shiftGAlignmentsList(gal)
-
-shiftedBamfile <- file.path(outPath, paste0(bamfiles.labels, "_shifted.bam"))
-export(gal1, shiftedBamfile)
+for (f in 1:length(bamfiles)) {
+  gal <- readBamFile(bamfiles[f], tag=tags, asMates=TRUE)
+  gal1 <- shiftGAlignmentsList(gal)
+  shiftedBamfiles <- file.path(outPath, basename(bamfiles[f]))
+  export(gal1, shiftedBamfiles)
+}
 
 ```
 
 ## Peak calling
 
+This is the command that will run the script for peak calling with our options specified. The code in this script can be found below.
+
 ```bash
-mkdir ./peaks
-while read line; do
-	accession_number=$(echo $line | cut -f1 -d' ');
-	shiftedBamFile=$(echo $line | cut -f6 -d' ');
-	macs2 callpeak \
-		--verbose 3 \
-		--treatment ${shiftedBamFile} \
-		-g mm \
-		-B \
-		-q 0.05 \
-		--extsize 200 \
-		--nomodel \
-		--shift -100 \
-		--nolambda \
-		--keep-dup all \
-		-f BAM \
-		--outdir ./peaks/${accesssion_number} \
-		--call-summits
-	bedtools intersect -abam ./shifted/${accesssion_number} -b ./peaks/${accesssion_number}/NA_peaks.narrowPeak -bed > ./peaks/${accesssion_number}_frip.bed
-	cat ./peaks/${accesssion_number}/NA_peaks.narrowPeak | cut -f1-3 > ${accesion_number}.bed
-	findMotifsGenome.pl $f mm10 ./motifs/${accession_number} -size 200 -p 2 -S 15 -len 8
-done < sampleSheet.csv
+
+bash ./scripts/peakCalling.sh
+
 ```
+
+```bash
+mkdir -p ./peaks
+mkdir -p ./motifs
+while read line; do
+        accession_number=$(echo $line | cut -f1 -d' ');
+        shiftedBamFile=$(echo $line | cut -f6 -d' ');
+        macs2 callpeak \
+                --verbose 3 \
+                --treatment ${shiftedBamFile} \
+                -g mm \
+                -B \
+                -q 0.05 \
+                --extsize 200 \
+                --nomodel \
+                --shift -100 \
+                --nolambda \
+                --keep-dup all \
+                -f BAM \
+                --outdir ./peaks/${accesssion_number} \
+                --call-summits
+        cat ./peaks/${accesssion_number}/NA_peaks.narrowPeak | cut -f1-3 > ./peaks/${accesion_number}.bed
+        bedtools intersect -abam ${shiftedBamFile} -b ./peaks/${accession_number}.bed -bed > ./peaks/${accesssion_number}_frip.bed
+        findMotifsGenome.pl ./peaks/${accesion_number}.bed mm10 ./motifs/${accession_number} -size 200 -p 16 -S 15 -len 8
+done < sampleSheet_up.csv
+```
+
 FRiP
 
-bedtools intersect -abam ./shifted/${accesssion_number} -b ./peaks/${accesssion_number}/NA_peaks.narrowPeak -bed > ./peaks/${accesssion_number}_frip.bed
+```
+   964784 ENCFF109LQF_frip.bed
+  1344882 ENCFF146ZCO_frip.bed
+   717487 ENCFF848NLJ_frip.bed
+   999222 ENCFF929LOH_frip.bed
 
 
-
+```
 
 ```R
 require(ChIPseeker)
 require(rtracklayer)
+require(TxDb.Mmusculus.UCSC.mm10.knownGene)
+txdb <- TxDb.Mmusculus.UCSC.mm10.knownGene
 
 # To import narrowPeak files
 extraCols_narrowPeak <- c(signalValue = "numeric", pValue = "numeric",
                           qValue = "numeric", peak = "integer")
 
-peakFiles <- list.files(pattern = "./peaks/*/NA_peaks.narrowPeak")
-peakGRs <- lapply(peakFiles, import, format = "BED", extraCols = extraCols_narrowPeak)
+peakFiles <- list.files(pattern = "[A-Z0-9].bed", path = "./peaks", full.names = TRUE)
+peakGRs <- lapply(peakFiles, import, format = "BED")
 
-saveRDS <- (peaksGRs, "peaksGRs.rds")
-peakGRs <- readRDS("peaksGRs.rds")
-
-peakAnnoList <- lapply(peaksGRs, annotatePeak, TxDb=txdb, tssRegion=c(-3000, 3000), verbose=FALSE)
-
+peakAnnoList <- lapply(peakGRs, annotatePeak, TxDb=txdb, tssRegion=c(-3000, 3000), verbose=FALSE)
+names(peakAnnoList) <- basename(peakFiles)
+ll
 plotAnnoBar(peakAnnoList)
 plotDistToTSS(peakAnnoList)
 
@@ -183,24 +191,31 @@ plotDistToTSS(peakAnnoList)
 ## Consensus peakset
 
 ```bash
-wc -l ./peaks/*/NA_peaks.narrowPeak
-bedtools intersect -wa -wb -q 0.5 r -a ./peaks/ENCFF848NLJ/NA_peaks.narrowPeak -b ./peaks/ENCFF929LOH/NA_peaks.narrowPeak | sort -k1.1 -k2,2n | bedtools merge > embryoLiver_12.5.bed
-bedtools intersect -wa -wb -q 0.5 r -a ./peaks/ENCFF848NLJ/NA_peaks.narrowPeak -b ./peaks/ENCFF929LOH/NA_peaks.narrowPeak | sort -k1,1 -k2,2n | bedtools merge> embryoLiver_0.bed
-wc -l ./peaks/*.bed
+
+bash ./scripts/consensus.sh
+
 ```
+
+```bash
+
+bedtools intersect -wa -wb -f 0.5 -r -a ./peaks/ENCFF109LQF.bed -b ./peaks/ENCFF146ZCO.bed | sort -k1,1 -k2,2n | bedtools merge > ./peaks/embryoLiver_12.5.bed
+bedtools intersect -wa -wb -f 0.5 -r -a ./peaks/ENCFF848NLJ.bed -b ./peaks/ENCFF929LOH.bed | sort -k1,1 -k2,2n | bedtools merge > ./peaks/embryoLiver_0.bed
+wc -l ./peaks/*.bed
+
+```
+
 ### Enrichr
 
 Use the bed files to run Enrichr on 2k closest genes.
 
-[embryoLiver_12.5days]()
-[embryoLiver_0days]()
+[embryoLiver_12.5days](http://amp.pharm.mssm.edu/Enrichr/enrich?dataset=2onpx)
+[embryoLiver_0days](http://amp.pharm.mssm.edu/Enrichr/enrich?dataset=2onpw)
 
 ## Differential analysis
 
 ```R
-
-require(Diffbind)
-exp <- dba(sampleSheet = "./sampleSheet.csv")
+require(DiffBind)
+exp <- dba(sampleSheet = "./sampleSheetDB.csv")
 plot(exp)
 dba.ap(exp, mode=DBA_OLAP_RATE)
 exp <- dba.count(exp)
@@ -210,24 +225,27 @@ plot(exp)
 dba.plotPCA(exp, DBA_FACTOR, label=DBA_TISSUE)
 saveRDS(object = exp, file = "exp.rds")
 dba.plotMA(exp)
-dba.plotMA(exp, contrast=2)
-dba.plotHeatmap(exp, contrast=2)
-dba.plotHeatmap(exp, contrast=2,correlations=FALSE)
 
 ```
 
 ## Footprinting
 
+We are going to substitute CTCF for another one.
+
 ```R
-library(MotifDb)
+
+require(MotifDb)
 require(ATACseqQC)
+require(BSgenome.Mmusculus.UCSC.mm10)
 CTCF <- query(MotifDb, c("CTCF"))
 CTCF <- as.list(CTCF)
 print(CTCF[[1]], digits=2)
 
-factorFootprints(shiftedBamfile, pfm=CTCF[[1]], 
+genome <- Mmusculus
+
+factorFootprints(bamfiles[1], pfm=CTCF[[1]], 
                  genome=genome,
-                 min.score="95%", seqlev=seqlev,
+                 min.score="95%",
                  upstream=100, downstream=100)
 
 ```
