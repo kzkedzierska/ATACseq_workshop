@@ -64,8 +64,6 @@ We need to do two things - one, copy bam files and two, check if every package i
 ```
 rsync -avz --exclude="*.git/" USERNAME@192.168.1.111:/ngschool/2017/ATACseq_workshop ~/ngschool/ATACseq_workshop
 
-perl /home/USERNAME/miniconda2/share/homer-4.9.1-5/configureHomer.pl -install mm10
-
 ```
 Open R and run the following code. 
 
