@@ -117,7 +117,7 @@ I tried to visualize to the best of my ability the reason why the read shifting 
 
 ![](./graphics/Tn5_scheme.png)
 
-*Legend*
+**Legend**  
 a) **DNA with Tn5 attached** - transposase with loaded adapters binds to the DNA.   
 b) **DNA with adapters attached** -  Tn5 attaches the adapters 9bp apart, one to the "-" strand and one to the "+" strand  
 c) and d) **Library preparations steps** - each fragment will generate two clusters.   
