@@ -118,12 +118,12 @@ I tried to visualize to the best of my ability the reason why the read shifting 
 ![](./graphics/Tn5_scheme.png)
 
 *Legend*
-a) **DNA with Tn5 attached** - transposase with loaded adapters binds to the DNA. 
-b) **DNA with adapters attached** -  Tn5 attaches the adapters 9bp apart, one to the "-" strand and one to the "+" strand
-c) and d) **Library preparations steps** - each fragment will generate two clusters. 
-e) **Reads attached to the reference** - respective reads will align to the opposite strands.
-f) **Reads shifting +4bp "+" strand and -5bp "-" strand** - this is the method mentioned in the original paper. 
-g) **Fragments shifting** - in this approach only one read per fragment is shifted according to the strand that the first read from pair aligns to. 
+a) **DNA with Tn5 attached** - transposase with loaded adapters binds to the DNA.   
+b) **DNA with adapters attached** -  Tn5 attaches the adapters 9bp apart, one to the "-" strand and one to the "+" strand  
+c) and d) **Library preparations steps** - each fragment will generate two clusters.   
+e) **Reads attached to the reference** - respective reads will align to the opposite strands.  
+f) **Reads shifting +4bp "+" strand and -5bp "-" strand** - this is the method mentioned in the original paper.   
+g) **Fragments shifting** - in this approach only one read per fragment is shifted according to the strand that the first read from pair aligns to.   
 
 That step was already executed on the bam files found in the *shifted* directory. Running this part requires very large package and some computational resources (unfortunately, the process is memory inefficient).
 
