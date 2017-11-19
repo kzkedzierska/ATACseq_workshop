@@ -1,4 +1,4 @@
-# ATACseq workshop
+# ATACsehttp://homer.ucsd.edu/homerhttps://github.com/taoliu/MACS/q workshop
 
 **Katarzyna Kedzierska**  
 *September 16, 2017  
@@ -20,11 +20,10 @@ Jachranka, Poland*
 
 ## Plan
 
-1) Quality metrics, fragment size distribution and reads shifting with R package ATACseqQC.
-2) Calling peaks with MACS2 
-3) Creating consensus peakset with bedtools 
-4) Motif search with HOMER 
-5) Footprinting with R package ATACseqQC
+1) Quality metrics, fragment size distribution and reads shifting with R package [ATACseqQC](https://bioconductor.org/packages/release/bioc/html/ATACseqQC.html).
+2) Peak calling with [MACS2](https://github.com/taoliu/MACS)
+3) Motif search with [HOMER](http://homer.ucsd.edu/homer/)
+5) Footprinting with R package [ATACseqQC](https://bioconductor.org/packages/release/bioc/html/ATACseqQC.html)
 
 ## Data 
 
