@@ -35,7 +35,7 @@ Optional
 	-d / --duplicates			removes duplicates , default [skips]
 	-s / --skip-sorting			only valid if removing duplicates, skips sorting, if not specified alignment will be sorted based on coordinates
 	-c / --chromosome			should be used if alignment has chr1, chr2 etc. names for chromosomes, otherwise 1,2 etc. will be used.	
-	-p / --part	PART 			if specified, the bam will be subsampled for a fraction (0 < PART < 1) of alignments
+	-p / --part	PART			if specified, the bam will be subsampled for a fraction (0 < PART < 1) or a specific chromosome (1 <= PART <= max for an organism).
 	-t / --threads THREADS 		number of threads used for sorting and saving bams"	
 }  
 
@@ -124,7 +124,7 @@ done
 
 #check for the necessary arguments
 if [ -z "${ACCESSION_NUMBER}" -o -z "${ORGANISM}" ]; then
-    error "Accession number or organism not specifed."
+    error "Accession number or organism not specified."
 fi 
 
 ### Assigns values based (chromosomes and blacklisted regions) on organism.
@@ -195,7 +195,12 @@ fi
 TMP=${INPUT_DIR}/${ACCESSION_NUMBER}_cleaned.bam
 
 if [ "X${PART}" != "X" ]; then
-### /TODO/ should check if float! maybe use awk or bc
-	echo "samtools view -b -h -@ ${THREADS} -s ${PART} -o {ACCESSION_NUMBER}_part.bam ${TMP}"
-	samtools view -b -h -@ ${THREADS} -s ${PART} -o {ACCESSION_NUMBER}_part.bam ${TMP}
+	if [ ${PART} -ge 1 ]; then ### /TODO/ it would be good to check for maximum for a given organism
+		echo "samtools view -b -h -@ ${THREADS} -o {ACCESSION_NUMBER}_part.bam ${TMP} chr${PART}"
+		samtools view -b -h -@ ${THREADS} -o {ACCESSION_NUMBER}_part.bam ${TMP} "chr${PART}"
+	else
+		### /TODO/ should check if float! maybe use awk or bc
+		echo "samtools view -b -h -@ ${THREADS} -s ${PART} -o {ACCESSION_NUMBER}_part.bam ${TMP}"
+		samtools view -b -h -@ ${THREADS} -s ${PART} -o {ACCESSION_NUMBER}_part.bam ${TMP}
+	fi
 fi

@@ -1,4 +1,4 @@
-# ATACsehttp://homer.ucsd.edu/homerhttps://github.com/taoliu/MACS/q workshop
+# ATACseq workshop
 
 **Katarzyna Kedzierska**  
 *September 16, 2017  
@@ -6,17 +6,25 @@ Jachranka, Poland*
 
 ## Table of Content
 * [ATACseq workshop](#atacseq-workshop)
-	* [Table of Content](#table-of-content)
-	* [Plan](#plan)
+    * [Table of Content](#table-of-content)
+    * [Introduction](#introduction)
+    * [Plan](#plan)
     * [Data](#data)
     * [Before we start](#before-we-start)
     * [Quality metrics](#quality-metrics)
     * [Reads shifting](#reads-shifting)
     * [Peak calling](#peak-calling)
     * [Consensus peakset](#consensus-peakset)
-    	* [Enrichr](#enrichr)
+      * [Enrichr](#enrichr)
     * [Differential analysis](#differential-analysis)
     * [Footprinting](#footprinting)
+
+
+## Introduction
+
+The slides for the introductory lecture can be accessed [here](https://github.com/kkedzierska/ATACseq_workshop/blob/master/ATAC-seq_workshop.pdf). 
+
+This workshop is supposed to introduce the highlights of ATAC-seq data analysis. Executing all parts of it allows to obtain some results from the data but does not cover all the methods that can be used in ATAC-seq data analysis. 
 
 ## Plan
 
@@ -25,9 +33,11 @@ Jachranka, Poland*
 3) Motif search with [HOMER](http://homer.ucsd.edu/homer/)
 5) Footprinting with R package [ATACseqQC](https://bioconductor.org/packages/release/bioc/html/ATACseqQC.html)
 
+**Code:** All the code can be found in the sub-directory *scripts*.
+
 ## Data 
 
-We will be working on data from the Enocde project. It'll be embryonic liver in 0 and 12.5 days post fertilization. This can gives insights into chromatin dynamics in mouse development.
+We will be working on data from the Enocode project. It'll be embryonic liver in 0 and 12.5 days post fertilization. This can gives insights into chromatin dynamics in mouse development.
 
 > Systematic mapping of chromatin state landscapes during mouse development
 David Gorkin, Iros Barozzi, Yanxiao Zhang, Ah Young Lee, Bin Lee, Yuan Zhao, Andre Wildberg, Bo Ding, Bo Zhang, Mengchi Wang, J. Seth Strattan, Jean M. Davidson, Yunjiang Qiu, Veena Afzal, Jennifer A. Akiyama, Ingrid Plajzer-Frick, Catherine S. Pickle, Momoe Kato, Tyler H. Garvin, Quan T. Pham, Anne N. Harrington, Brandon J. Mannion, Elizabeth A. Lee, Yoko Fukuda-Yuzawa, Yupeng He, Sebastian Preissl, Sora Chee, Brian A. Williams, Diane Trout, Henry Amrhein, Hongbo Yang, J. Michael Cherry, Yin Shen, Joseph R. Ecker, Wei Wang, Diane E. Dickel, Axel Visel, Len A. Pennacchio, Bing Ren
@@ -58,50 +68,67 @@ done < sampleSheet.csv 2>&1 | tee workshopPreparation.log
 
 ## Before we start
 
-We need to do two things - one, copy bam files and two, check if every package in R is already installed. 
+We need to do two things - one, copy bam files. 
 
 ```
 rsync -avz --exclude="*.git/" USERNAME@192.168.1.111:/ngschool/2017/ATACseq_workshop ~/ngschool/ATACseq_workshop
-
 ```
-Open R and run the following code. 
+And two, check if every package in R is already installed. To do so, we need to open RStudio and run the following code. 
 
 ```R
-
+setwd(~/ngschool/ATACseq_workshop)
 source("./scripts/test.R")
-
 ```
 
 ## Quality metrics
+
+There's a lot of times when one should check the quality of the data while working with the outputs of sequencing experiment. After alignment and filtering the first thing one must check with ATAC-seq data is the fragment size distribution. We will generate the files 
 
 ```R
 require(ATACseqQC)
 require(grid)
 sampleSheet <- read.csv("sampleSheet_up.csv", 
-                        sep ="\t", 
-                        header = FALSE,
+                        sep = "\t", 
+                        header = FALSE, 
                         stringsAsFactors = FALSE)
 bamfiles <- sampleSheet$V6
-bamfiles.labels <- as.character(mapply(FUN=gsub, basename(bamfiles), MoreArgs = list(pattern = "_part.bam", replacement = "")))
+bamfiles.labels <- as.character(mapply(FUN = gsub, 
+                                       basename(bamfiles), 
+                                       MoreArgs = list(pattern = "_part.bam", replacement = "")))
 
-#fragSize <- fragSizeDist(bamfiles, bamfiles.labels)
+# fragSize <- fragSizeDist(bamfiles, bamfiles.labels) 
+# Helper loop because of the issue with the fragSizeDist function
 for (a in 1:length(bamfiles)) {
   grid.newpage()
   fragSize <- fragSizeDist(bamfiles[a], bamfiles.labels[a])
 }
+
 ```
 
 Fragment size distribution plot.
 
 ![](./graphics/fragSize_1.png)
+
 ![](./graphics/fragSize_2.png)
 
 ## Reads shifting
 
-That was already done, don't run it since it requires huge package I don't think everyboy has. 
+I tried to visualize to the best of my ability the reason why the read shifting is applied and how it is made. I welcome any suggestions as to how to make this visualization better. 
+
+![](./graphics/Tn5_scheme.png)
+
+*Legend*
+a) **DNA with Tn5 attached** - transposase with loaded adapters binds to the DNA. 
+b) **DNA with adapters attached** -  Tn5 attaches the adapters 9bp apart, one to the "-" strand and one to the "+" strand
+c) and d) **Library preparations steps** - each fragment will generate two clusters. 
+e) **Reads attached to the reference** - respective reads will align to the opposite strands.
+f) **Reads shifting +4bp "+" strand and -5bp "-" strand** - this is the method mentioned in the original paper. 
+g) **Fragments shifting** - in this approach only one read per fragment is shifted according to the strand that the first read from pair aligns to. 
+
+That step was already executed on the bam files found in the *shifted* directory. Running this part requires very large package and some computational resources (unfortunately, the process is memory inefficient).
 
 ```R
-require(BSgenome.Mmusculus.UCSC.mm10) #600 MB
+require(BSgenome.Mmusculus.UCSC.mm10) #large package 600 MB
 ## bamfile tags
 tags <- c("AS", "XN", "XM", "XO", "XG", "NM", "MD", "YS", "YT")
 ## files will be output into outPath
@@ -230,7 +257,6 @@ dba.plotMA(exp)
 We are going to substitute CTCF for another one.
 
 ```R
-
 require(MotifDb)
 require(ATACseqQC)
 require(BSgenome.Mmusculus.UCSC.mm10)
